@@ -16,6 +16,7 @@ const windValueTXT =document.querySelector('.wind-value-txt');
 const weatherSummaryImg =document.querySelector('.weather-summary-img')
 
 const currentDateTXT = document.querySelector('.current-date-txt');
+const forcastItemsContainer = document.querySelector('.forcast-items-container');
 
 
 searchBtn.addEventListener('click' , ()=>{
@@ -85,9 +86,55 @@ function getCurrentDate(){
 
     weatherSummaryImg.src = `assets/weather/${getWeatherIcon(id)}`
     
-
+     await updateWeatherForcastsInfo(city)
     showDisplaySection(weatherInfoSection);
  }
+
+async function updateWeatherForcastsInfo(city) {
+    const forcastsData = await getFetchData('forecast', city);
+    const timeTaken = '12:00:00';
+    const now = new Date();
+
+    const egyptDate = new Date().toLocaleDateString('en-EG', { timeZone: 'Africa/Cairo' });
+    console.log("Egypt Date Only:", egyptDate);
+
+    forcastItemsContainer.innerHTML = ''
+
+    forcastsData.list.forEach(forcastsWeather => {
+        if (forcastsWeather.dt_txt.includes(timeTaken) &&  
+         !forcastsWeather.dt_txt.includes(egyptDate)) {
+            console.log("Match found:", forcastsWeather);
+            updateForcastItems(forcastsWeather)
+        }
+
+        console.log(forcastsWeather);
+    });
+}
+function updateForcastItems(weatherData){
+    console.log(weatherData);
+    const {
+        dt_txt: date,
+        weather: [{ id }],
+        main: { temp }
+    } = weatherData;
+
+    const dateTaken = new Date(date);
+    const dateOption = {
+        day: '2-digit',
+        month: 'short'
+    };
+    const dateResult = dateTaken.toLocaleDateString('en-US', dateOption);
+
+    const forcastItem = `
+        <div class="forcast-item">
+            <h5 class="forcast-item-date regular-txt">${dateResult}</h5> 
+            <img src="assets/weather/${getWeatherIcon(id)}" alt="" class="forcast-item-img">
+            <h5 class="forcast-item-temp">${Math.round(temp)}</h5>
+        </div>
+    `;
+
+    forcastItemsContainer.insertAdjacentHTML('beforeend', forcastItem);
+}
 
 
  function showDisplaySection(section) {
